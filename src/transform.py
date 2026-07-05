@@ -23,6 +23,7 @@ def latest_raw_file(raw_dir: Path = RAW_DIR) -> Path:
 def clean(df: pd.DataFrame) -> pd.DataFrame:
     df = df.rename(columns=COLUMN_RENAME)
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+    df = df.drop_duplicates()
     return df
 
 
