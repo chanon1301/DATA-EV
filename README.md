@@ -1,0 +1,90 @@
+# EV Data Pipeline
+
+A small end-to-end data engineering pipeline built around the **IEA Global EV
+Outlook 2025** dataset (Global EV Data Explorer). It takes a raw Excel export,
+runs it through ingestion, transformation, validation and loading, and serves
+the result through an interactive dashboard.
+
+## Data source
+
+- IEA Global EV Outlook 2025 — "EV data by country" (Excel)
+- https://www.iea.org/data-and-statistics/data-product/global-ev-outlook-2025
+- 16,436 rows covering EV stock, sales, charging points, battery demand and
+  more, across 63 countries/regions and years 2010–2024 (plus 2030
+  projections under the STEPS scenario)
+
+## Pipeline
+
+```
+EV Data Explorer 2025.xlsx
+        │
+        ▼
+   [ingest.py]     copy source file into data/raw/ with a timestamped
+        │           version, log row/column counts
+        ▼
+  [transform.py]   rename & normalize columns, drop duplicates, split
+        │           into Historical vs Projection-STEPS datasets
+        ▼
+  [validate.py]     schema, null, duplicate, category and range checks —
+        │           pipeline stops here if data quality issues are found
+        ▼
+    [Load.py]       load cleaned CSVs into data/ev_data.duckdb
+        │
+        ▼
+    [app.py]        Streamlit dashboard querying DuckDB directly
+```
+
+Run the full pipeline in one command:
+
+```bash
+python src/main.py
+```
+
+Or run each stage individually (`ingest.py` → `transform.py` →
+`validate.py` → `Load.py`) if you want to inspect intermediate output.
+
+## Dashboard
+
+```bash
+python -m streamlit run src/app.py
+```
+
+Opens at `http://localhost:8501`. Filter by parameter (EV stock, EV sales,
+etc.), mode (Cars, Trucks, ...) and country to see:
+
+- Trend of the selected parameter over time, broken down by powertrain
+  (BEV/PHEV/FCEV)
+- Top 10 countries for the selected parameter in the latest year
+- Year-over-year change and country coverage as stat tiles
+
+## Project structure
+
+```
+data/
+  raw/                 versioned raw Excel snapshots (from ingest.py)
+  processed/            cleaned CSVs (from transform.py)
+  ev_data.duckdb         queryable database (from Load.py)
+src/
+  ingest.py              stage 1 — versioned ingestion
+  transform.py            stage 2 — clean, rename, dedupe, split
+  validate.py              stage 3 — data quality checks
+  Load.py                   stage 4 — load into DuckDB
+  main.py                    runs all stages in order
+  app.py                      Streamlit dashboard (serving layer)
+EV.ipynb                 exploratory analysis notebook
+```
+
+## Requirements
+
+```bash
+pip install pandas duckdb streamlit plotly openpyxl
+```
+
+## Data quality notes
+
+- The Historical and Projection-STEPS categories are kept in separate
+  tables — mixing them (e.g. summing by year) would blend actuals with
+  2030 forecasts.
+- The raw source contains 12 exact duplicate rows (India / Trucks /
+  Projection-STEPS entries); `transform.py` drops them, and `validate.py`
+  fails the pipeline if duplicates reappear.
