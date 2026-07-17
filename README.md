@@ -5,6 +5,89 @@ Outlook 2025** dataset (Global EV Data Explorer). It takes a raw Excel export,
 runs it through ingestion, transformation, validation and loading, and serves
 the result through an interactive dashboard.
 
+## What this project is
+
+This isn't just an EDA notebook — it's built to mirror how a real data
+pipeline is structured at work: a raw file comes in, gets versioned,
+cleaned, checked for quality problems, loaded into a queryable database,
+and finally served to an end user through a dashboard. Each of those five
+steps is its own script, so the pipeline can be run end-to-end with one
+command, or debugged one stage at a time.
+
+**In one sentence:** turns a manually-downloaded IEA Excel file into a
+versioned, validated, query-ready database with a self-serve dashboard on
+top.
+
+### Skills this demonstrates
+
+| Area | What's shown |
+|---|---|
+| Ingestion | Timestamped, versioned raw-file snapshots (no silent overwrites) |
+| Transformation | Column normalization, dedup, splitting actuals from forecasts |
+| Data quality | Automated validation gate — bad data never reaches the database |
+| Storage | Analytical querying with DuckDB instead of re-reading Excel/CSV every time |
+| Orchestration | Single entry point (`main.py`) chaining all stages, fails fast on bad data |
+| Serving | Interactive Streamlit dashboard reading directly from the database |
+
+## Getting started
+
+Step-by-step to go from a fresh clone to seeing the dashboard in your
+browser.
+
+**1. Install dependencies**
+
+```bash
+pip install pandas duckdb streamlit plotly openpyxl
+```
+
+**2. Run the pipeline** (ingest → transform → validate → load)
+
+```bash
+python src/main.py
+```
+
+Expected output — each stage prints what it did, ending with a success
+message:
+
+```
+=== 1. Ingest ===
+Ingested: ev_data_2026-07-11_034601.xlsx
+Rows: 16436, Columns: 9
+...
+=== 3. Validate ===
+[historical] checked 14616 rows, 0 issue(s) found
+[projection] checked 1808 rows, 0 issue(s) found
+All checks passed.
+=== 4. Load ===
+Loaded table 'historical': 14616 rows
+Loaded table 'projection': 1808 rows
+Database ready at: ...\data\ev_data.duckdb
+Pipeline completed successfully.
+```
+
+This creates/updates `data/ev_data.duckdb` — the database the dashboard
+reads from.
+
+**3. Launch the dashboard**
+
+```bash
+python -m streamlit run src/app.py
+```
+
+Terminal will print a local URL:
+
+```
+Local URL: http://localhost:8501
+```
+
+It opens automatically in your browser (or open that URL manually). Use
+the filters at the top (parameter / mode / country) to explore — the
+charts and stat tiles update live as you change them.
+
+> Run pipeline steps individually instead, if you want to inspect
+> intermediate output: `python src/ingest.py`, then `python
+> src/transform.py`, `python src/validate.py`, `python src/Load.py`.
+
 ## Data source
 
 - IEA Global EV Outlook 2025 — "EV data by country" (Excel)
