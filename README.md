@@ -5,20 +5,28 @@ Outlook 2025** dataset (Global EV Data Explorer). It takes a raw Excel export,
 runs it through ingestion, transformation, validation and loading, and serves
 the result through an interactive dashboard.
 
+**In one sentence:** turns a manually-downloaded IEA Excel file into a
+versioned, validated, query-ready database with a self-serve dashboard on top.
+
+## Contents
+
+- [What this project is](#what-this-project-is)
+- [Quick start](#quick-start)
+- [Architecture](#architecture)
+- [Data source](#data-source)
+- [Project structure](#project-structure)
+- [Data quality notes](#data-quality-notes)
+
 ## What this project is
 
 This isn't just an EDA notebook — it's built to mirror how a real data
 pipeline is structured at work: a raw file comes in, gets versioned,
 cleaned, checked for quality problems, loaded into a queryable database,
-and finally served to an end user through a dashboard. Each of those five
-steps is its own script, so the pipeline can be run end-to-end with one
-command, or debugged one stage at a time.
+and finally served to an end user through a dashboard. Each step is its
+own script, so the pipeline can be run end-to-end with one command, or
+debugged one stage at a time.
 
-**In one sentence:** turns a manually-downloaded IEA Excel file into a
-versioned, validated, query-ready database with a self-serve dashboard on
-top.
-
-### Skills this demonstrates
+**Skills this demonstrates:**
 
 | Area | What's shown |
 |---|---|
@@ -29,10 +37,7 @@ top.
 | Orchestration | Single entry point (`main.py`) chaining all stages, fails fast on bad data |
 | Serving | Interactive Streamlit dashboard reading directly from the database |
 
-## Getting started
-
-Step-by-step to go from a fresh clone to seeing the dashboard in your
-browser.
+## Quick start
 
 **1. Install dependencies**
 
@@ -40,14 +45,13 @@ browser.
 pip install pandas duckdb streamlit plotly openpyxl
 ```
 
-**2. Run the pipeline** (ingest → transform → validate → load)
+**2. Run the pipeline** — ingest → transform → validate → load, one command:
 
 ```bash
 python src/main.py
 ```
 
-Expected output — each stage prints what it did, ending with a success
-message:
+Each stage prints what it did, ending with a success message:
 
 ```
 === 1. Ingest ===
@@ -66,7 +70,9 @@ Pipeline completed successfully.
 ```
 
 This creates/updates `data/ev_data.duckdb` — the database the dashboard
-reads from.
+reads from. (To inspect intermediate output instead, run each stage on
+its own: `python src/ingest.py`, `python src/transform.py`, `python
+src/validate.py`, `python src/Load.py`.)
 
 **3. Launch the dashboard**
 
@@ -74,29 +80,15 @@ reads from.
 python -m streamlit run src/app.py
 ```
 
-Terminal will print a local URL:
+Opens automatically at `http://localhost:8501`. Use the filters at the
+top (parameter / mode / country) to explore:
 
-```
-Local URL: http://localhost:8501
-```
+- Trend of the selected parameter over time, broken down by powertrain
+  (BEV/PHEV/FCEV)
+- Top 10 countries for the selected parameter in the latest year
+- Year-over-year change and country coverage as stat tiles
 
-It opens automatically in your browser (or open that URL manually). Use
-the filters at the top (parameter / mode / country) to explore — the
-charts and stat tiles update live as you change them.
-
-> Run pipeline steps individually instead, if you want to inspect
-> intermediate output: `python src/ingest.py`, then `python
-> src/transform.py`, `python src/validate.py`, `python src/Load.py`.
-
-## Data source
-
-- IEA Global EV Outlook 2025 — "EV data by country" (Excel)
-- https://www.iea.org/data-and-statistics/data-product/global-ev-outlook-2025
-- 16,436 rows covering EV stock, sales, charging points, battery demand and
-  more, across 63 countries/regions and years 2010–2024 (plus 2030
-  projections under the STEPS scenario)
-
-## Pipeline
+## Architecture
 
 ```
 EV Data Explorer 2025.xlsx
@@ -117,28 +109,13 @@ EV Data Explorer 2025.xlsx
     [app.py]        Streamlit dashboard querying DuckDB directly
 ```
 
-Run the full pipeline in one command:
+## Data source
 
-```bash
-python src/main.py
-```
-
-Or run each stage individually (`ingest.py` → `transform.py` →
-`validate.py` → `Load.py`) if you want to inspect intermediate output.
-
-## Dashboard
-
-```bash
-python -m streamlit run src/app.py
-```
-
-Opens at `http://localhost:8501`. Filter by parameter (EV stock, EV sales,
-etc.), mode (Cars, Trucks, ...) and country to see:
-
-- Trend of the selected parameter over time, broken down by powertrain
-  (BEV/PHEV/FCEV)
-- Top 10 countries for the selected parameter in the latest year
-- Year-over-year change and country coverage as stat tiles
+- IEA Global EV Outlook 2025 — "EV data by country" (Excel)
+- https://www.iea.org/data-and-statistics/data-product/global-ev-outlook-2025
+- 16,436 rows covering EV stock, sales, charging points, battery demand and
+  more, across 63 countries/regions and years 2010–2024 (plus 2030
+  projections under the STEPS scenario)
 
 ## Project structure
 
@@ -155,12 +132,6 @@ src/
   main.py                    runs all stages in order
   app.py                      Streamlit dashboard (serving layer)
 EV.ipynb                 exploratory analysis notebook
-```
-
-## Requirements
-
-```bash
-pip install pandas duckdb streamlit plotly openpyxl
 ```
 
 ## Data quality notes
