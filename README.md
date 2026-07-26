@@ -8,6 +8,8 @@ the result through an interactive dashboard.
 **In one sentence:** turns a manually-downloaded IEA Excel file into a
 versioned, validated, query-ready database with a self-serve dashboard on top.
 
+![Dashboard screenshot](docs/dashboard.png)
+
 ## Contents
 
 - [What this project is](#what-this-project-is)
