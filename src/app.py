@@ -36,7 +36,7 @@ def load_data() -> pd.DataFrame:
 df = load_data()
 
 st.title("EV Data Explorer")
-st.caption("Historical EV data (IEA Global EV Outlook 2025) — served from DuckDB")
+st.caption("Historical EV data (IEA Global EV Outlook 2025) — served from DuckDBB")
 
 # --- Filters (one row) ---
 col1, col2, col3 = st.columns(3)
